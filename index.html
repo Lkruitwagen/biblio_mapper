@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+circle {
+  stroke-width: 1.5px;
+}
+
+line {
+  stroke: #999;
+}
+
+</style>
+<body>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script>
+
+var width = 500,
+    height = 500,
+	radius = Math.min(width,height) / 2,
+	hyp2 = Math.pow(radius, 2),
+    node_rad = 6;
+
+var fill = d3.scale.category20();
+
+var force = d3.layout.force()
+    .gravity(.05)
+    .charge(-200)
+    .linkDistance(200)
+    .size([width, height]);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+var pool = svg.append('circle')
+    .attr({
+        class: 'pool',
+        r: radius,
+        cy: 0,
+        cx: 0,
+        transform: 'translate(' + width / 2 + ',' + height / 2 + ')'
+    });
+	
+function pythag(r, b, coord) {
+    r += node_rad;
+
+    // force use of b coord that exists in circle to avoid sqrt(x<0)
+    b = Math.min(width - r, Math.max(r, b));
+
+    var b2 = Math.pow((b - radius), 2),
+        a = Math.sqrt(hyp2 - b2);
+
+    // radius - sqrt(hyp^2 - b^2) < coord < sqrt(hyp^2 - b^2) + radius
+    coord = Math.max(radius - a + r,
+                Math.min(a + radius - r, coord));
+
+    return coord;
+}
+
+d3.json("graph.json", function(error, graph) {
+  if (error) throw error;
+
+  var link = svg.selectAll("line")
+      .data(graph.links)
+    .enter().append("line")
+	.style("stroke-width", function(d) { return Math.sqrt(d.weight); });
+
+  var node = svg.selectAll("circle")
+      .data(graph.nodes)
+    .enter().append("circle")
+      .attr("r", function(d) { return node_rad * d.group - .75 ;})
+      .style("fill", function(d) { return d.color; })
+      .style("stroke", function(d) { return d3.rgb(fill(d.group)).darker(); })
+      .call(force.drag);
+
+  force
+      .nodes(graph.nodes)
+      .links(graph.links)
+      .on("tick", tick)
+      .start();
+
+  function tick() {
+    node.attr("cx", function(d) { return d.x = pythag(node_rad, d.y, d.x); })
+        .attr("cy", function(d) { return d.y = pythag(node_rad, d.x, d.y); });
+
+	//node.attr("cx", function(d) { return d.x = Math.max(node_rad, Math.min(width - node_rad, d.x)); })
+        //.attr("cy", function(d) { return d.y = Math.max(node_rad, Math.min(height - node_rad, d.y)); });
+
+		
+    link.attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+  }
+});
+
+</script>
+<p id="demo"></p>
+<script>
+
+function addtwo(a,b){
+	return a+b;
+
+}
+
+document.getElementById("demo").innerHTML = addtwo(5,7);
+document.getElementById("demo").innerHTML = pythag(node_rad,400,400);
+
+</script>
