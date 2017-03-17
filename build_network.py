@@ -29,14 +29,17 @@ def Find(pat, text):
 
 def collect_model():
 	#hihi
-	w1=csv_in('w1.csv')
-	b1=csv_in('b1.csv')
-	w2=csv_in('w2.csv')
-	b2=csv_in('b2.csv')
-	w3=csv_in('w3.csv')
-	b3=csv_in('b3.csv')
+	print "collect model"
+	w1=csv_in('bw/w1.csv')
+	print w1
+	b1=csv_in('bw/b1.csv')
+	w2=csv_in('bw/w2.csv')
+	b2=csv_in('bw/b2.csv')
+	w3=csv_in('bw/w3.csv')
+	b3=csv_in('bw/b3.csv')
 	model={}
 	model={'w1': w1, 'b1': b1, 'w2': w2, 'b2': b2, 'w3':w3, 'b3': b3}
+	print model
 	return model
 
 def csv_in(name):
@@ -47,12 +50,14 @@ def csv_in(name):
 	resultfile=open(path,'r')
 	wr=csv.reader(resultfile,dialect='excel')
 	for row in wr:
+		print row
 		var.append([float(el) for el in row])
 	resultfile.close()
 	return np.array(var)
 
 def predict(model,X):
 	w1,b1,w2,b2,w3,b3 = model['w1'],model['b1'],model['w2'],model['b2'],model['w3'],model['b3']
+	#print 'w1', w1
 	z1=X.dot(w1)+b1
 	a1=np.tanh(z1)
 	z2=a1.dot(w2)+b2
@@ -67,7 +72,7 @@ def process_refs(ref_path,final_path,model):
 	files = [f for f in os.listdir(ref_path) if os.path.isfile(os.path.join(ref_path,f))]
 	files = [f for f in files if f[-4:]=='.csv']
 	paths = [os.path.join(ref_path,f) for f in files] #all ref csv files
-	
+	print paths
 	lines=[]
 
 	for path in paths:
@@ -81,10 +86,11 @@ def process_refs(ref_path,final_path,model):
 
 
 		with open(path,'rb') as csvfile:
-			samplereader = csv.reader(csvfile,dialect='excel')
+			samplereader = csv.reader(csvfile)
+			print 'samplereader', samplereader
 			for row in samplereader:
 				#lines.append(row)
-				#print row
+				print 'row',row
 				vec=prep(row[0])
 				P=predict(model,vec)
 				output=np.argmax(P,axis=1)
@@ -137,6 +143,7 @@ def build_table(final_path):
 	paths = [os.path.join(final_path,f) for f in files] #all ref csv files
 
 	paths=paths[:]
+	print paths
 
 	master=[['PRIMARY']]
 
@@ -182,17 +189,19 @@ def build_table(final_path):
 			if len(master[i])<len(prim):
 				master[i].append(0)
 		csvfile.close()
-
+	print 'master', master
 	links=[el[1:] for el in master[1:]]
 	#print links[1]
 	#print sum(links[1])
+	print links
+	print el
 	link_sum=[sum(el)-1 for el in links]
 	print 'match_count=', match_count
 	#print link_sum
 
 
 	cwd=os.getcwd()
-	name='master.csv'
+	name='output_master/master.csv'
 	resultfile=open(os.path.join(cwd,name),'wb')
 	wr=csv.writer(resultfile,dialect='excel')
 	for el in master:
@@ -366,12 +375,16 @@ def str2entry(row_str):
 
 def main():
 	print 'hello world'
+    
 	model = collect_model()
-
-	ref_path=r'C:\Users\Lucas\Dropbox\DPhil\ToS_Lit_Review\Articles\ref'
-	final_path=r'C:\Users\Lucas\Dropbox\DPhil\ToS_Lit_Review\Articles\final'
+	print "test"
+	print model
+	cwd = os.getcwd()
+	ref_path=cwd
+	final_path=cwd+'/output_csv'
 	all_sec_refs=process_refs(ref_path,final_path,model) #contains multiples (i.e. which is good)
 	#print model
+	print all_sec_refs
 	sort_refs=sorted(all_sec_refs)
 	#print sort_refs
 	test_refs=sort_refs[0:5]
@@ -409,15 +422,13 @@ def main():
 		#print 'trace_mult:'
 
 	demo=[el for el in trace_mult if el[1]>0]
-	for row in demo:
-		print row
 
 	master = build_table(final_path)
 
 	#print all_sec_refs[:]
 
 	cwd=os.getcwd()
-	name='all_refs.csv'
+	name='output_master/all_refs.csv'
 	path=os.path.join(cwd,name)
 	resultfile=open(path,'wb')
 	wr=csv.writer(resultfile,dialect='excel')

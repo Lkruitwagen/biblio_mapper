@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #crushed pdfs in current directory into textfiles at the path given in hard_path
 
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
@@ -43,7 +44,8 @@ def pdf2txt(path):
     device.close()
     retstr.close()
 
-    hard_path=r'C:\Users\Lucas\Dropbox\DPhil\ToS_Lit_Review\Articles\txt'
+    cwd = os.getcwd()
+    hard_path=cwd
 
 
     [dummy,name]=os.path.split(path)

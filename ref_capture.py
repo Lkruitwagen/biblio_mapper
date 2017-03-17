@@ -92,8 +92,9 @@ def main():
     #match refs
 
     #get all txt files
-    txt_path=r'C:\Users\Lucas\Dropbox\DPhil\ToS_Lit_Review\Articles\txt'
-    ref_path=r'C:\Users\Lucas\Dropbox\DPhil\ToS_Lit_Review\Articles\ref'
+    cwd = os.getcwd()
+    txt_path=cwd
+    ref_path=cwd
     files = [f for f in os.listdir(txt_path) if os.path.isfile(os.path.join(txt_path,f))]
     files = [f for f in files if f[-4:]=='.txt']
     
